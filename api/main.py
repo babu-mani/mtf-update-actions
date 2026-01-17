@@ -49,6 +49,11 @@ STYLE = {
 
 # --- TWITTER BOT LOGIC ---
 def post_to_twitter(image_path, date_str, data):
+    # Safety Check: Prevent crash if data is missing
+    if not data:
+        print("⚠️ No data available for tweet. Skipping.")
+        return
+
     print("🐦 Attempting to tweet...")
     
     api_key = os.environ.get("TWITTER_API_KEY")
@@ -69,14 +74,14 @@ def post_to_twitter(image_path, date_str, data):
         client = tweepy.Client(consumer_key=api_key, consumer_secret=api_secret,
                                access_token=access_token, access_token_secret=access_secret)
         
-        # --- NEW TWEET TEXT FORMAT ---
+        # --- FIXED TWEET TEXT (No Double Negative) ---
         net_sign = "+" if data['net'] >= 0 else ""
         
         tweet_text = (
             f"MTF (Margin Trading) Insights | {date_str}\n\n"
             f"Net Margin Book Added: ₹{net_sign}{data['net']:,.2f} Cr\n"
             f"Margin Positions Added: ₹{data['added']:,.2f} Cr\n"
-            f"Margin Positions Liquidated: ₹-{data['liquidated']:,.2f} Cr\n"
+            f"Margin Positions Liquidated: ₹{data['liquidated']:,.2f} Cr\n"  # Removed the "-" here
             f"Industry Margin (MTF) Book: ₹{data['industry_book']:,.2f} Cr\n\n"
             f"#MTF #MarginTrading #Nifty #BankNifty #StockMarket"
         )
@@ -239,8 +244,7 @@ def create_dashboard(data, date_str):
     plt.close()
     print(f"🖼️ Dashboard saved: {filename}")
     
-    # --- UPDATED CALL ---
-    post_to_twitter(filename, date_str, data) # Added data here
+    return filename
 
 # --- MAIN ---
 def main():
@@ -256,7 +260,12 @@ def main():
         
         data = fetch_mtf_data(url, date_display)
         if data:
-            create_dashboard(data, date_display)
+            # 1. Create Image
+            image_filename = create_dashboard(data, date_display)
+            
+            # 2. Tweet Image with Data
+            post_to_twitter(image_filename, date_display, data)
+            
             found = True
             break
             
