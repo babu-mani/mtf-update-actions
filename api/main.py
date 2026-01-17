@@ -26,7 +26,7 @@ COLORS = {
     'header_strip': '#374151'
 }
 
-# --- FONT SETUP (Files in same folder) ---
+# --- FONT SETUP ---
 FONT_DIR = "." 
 FONT_REGULAR = os.path.join(FONT_DIR, 'Inter-Regular.ttf')
 FONT_BOLD = os.path.join(FONT_DIR, 'Inter-Bold.ttf')
@@ -48,7 +48,7 @@ STYLE = {
 }
 
 # --- TWITTER BOT LOGIC ---
-def post_to_twitter(image_path, date_str):
+def post_to_twitter(image_path, date_str, data):
     print("🐦 Attempting to tweet...")
     
     api_key = os.environ.get("TWITTER_API_KEY")
@@ -69,7 +69,19 @@ def post_to_twitter(image_path, date_str):
         client = tweepy.Client(consumer_key=api_key, consumer_secret=api_secret,
                                access_token=access_token, access_token_secret=access_secret)
         
-        tweet_text = f"NSE MTF Market Insights 📊\nDate: {date_str}\n\n#StockMarket #NSE #Trading #MTF"
+        # --- NEW TWEET TEXT FORMAT ---
+        net_sign = "+" if data['net'] >= 0 else ""
+        
+        tweet_text = (
+            f"MTF (Margin Trading) Insights | {date_str}\n\n"
+            f"Net Margin Book Added: ₹{net_sign}{data['net']:,.2f} Cr\n"
+            f"Margin Positions Added: ₹{data['added']:,.2f} Cr\n"
+            f"Margin Positions Liquidated: ₹-{data['liquidated']:,.2f} Cr\n"
+            f"Industry Margin (MTF) Book: ₹{data['industry_book']:,.2f} Cr\n\n"
+            f"#MTF #MarginTrading #Nifty #BankNifty #StockMarket"
+        )
+        # -----------------------------
+
         client.create_tweet(text=tweet_text, media_ids=[media.media_id])
         print("✅ Tweet posted successfully!")
         
@@ -227,7 +239,8 @@ def create_dashboard(data, date_str):
     plt.close()
     print(f"🖼️ Dashboard saved: {filename}")
     
-    post_to_twitter(filename, date_str)
+    # --- UPDATED CALL ---
+    post_to_twitter(filename, date_str, data) # Added data here
 
 # --- MAIN ---
 def main():
