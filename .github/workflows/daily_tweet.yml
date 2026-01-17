@@ -2,10 +2,8 @@ name: Daily NSE MTF Tweet
 
 on:
   schedule:
-    # 03:26 UTC = 08:56 AM IST (India Time)
+    # 03:26 UTC = 08:56 AM IST
     - cron: '26 3 * * *'
-  
-  # Allows manual testing
   workflow_dispatch:
 
 jobs:
@@ -19,19 +17,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # <--- Updated to Python 3.10
+          python-version: '3.10'
 
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
       - name: Run Script
-        # These are required to access your keys
+        # 👇 THIS SECTION IS THE BRIDGE. IT MUST BE HERE. 👇
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
           TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
+        # 👆 WITHOUT THIS, PYTHON CANNOT SEE YOUR PASSWORDS 👆
         run: |
           cd api
           python main.py
