@@ -1,9 +1,6 @@
 name: Daily NSE MTF Tweet
 
 on:
-  schedule:
-    # 03:26 UTC = 08:56 AM IST
-    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
